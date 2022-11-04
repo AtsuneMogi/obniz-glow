@@ -1,0 +1,103 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style type="text/css">
+        html {
+            touch-action: manipulation;
+        }
+        body {
+            text-align: center;
+            font-size: 40px;
+        }
+        select {
+            width: 200px;
+            height: 100px;
+            font-size: 40px;
+        }
+        button {
+            width: 200px;
+            height: 100px;
+            font-size: 40px;
+            border-radius: 20px;
+            background: greenyellow;
+        }
+    </style>
+    <title>GLOW</title>
+    
+    <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+    <script
+      src="https://unpkg.com/obniz@3.23.0/obniz.js"
+      crossorigin="anonymous"
+    ></script>
+  </head>
+  <body>
+    <div id="obniz-debug"></div>
+    <h1>GLOW</h1>
+    <hr>ID:
+    <select id="id">
+        <option value="0x0000">All</option>
+        <option value="0x0001">1</option>
+        <option value="0x0002">2</option>
+        <option value="0x0003">3</option>
+        <option value="0x0004">4</option>
+    </select><br><br>
+    <hr>Color:
+    <select id="color">
+        <option value="0x0000">Off</option>
+        <option value="0x01C0">Red</option>
+        <option value="0x0038">Green</option>
+        <option value="0x0007">Blue</option>
+        <option value="0x5800">Rainbow</option>
+    </select>
+    <h1> </h1>
+    <button id="send">Send</button>
+
+    <script>
+      var obniz = new Obniz("6717-4278");
+
+      
+
+      obniz.onconnect = async function() {
+        obniz.display.clear();
+        obniz.display.print("Select ID");
+        obniz.display.print("and");
+        obniz.display.print("Press Button");
+
+        await obniz.ble.initWait();
+
+        $("#send").click(async function() {
+          obniz.display.clear();
+
+          var beacon = [
+            0x02, 0x01, 0x06, 0x1A, 0xFF, 0x00, 0x4C, 0x02, 0x15, // iBeacon
+            0x65, 0x43, 0x24, 0x61, 0x1E, 0xFE, 0x4A, 0xDB, 0xBC, 0x7E, 0x9F, 0x7F, 0x8E, 0x27, 0xFD, 0xC1 // uuid
+          ];
+          var rssi = [0xA0];
+
+          var id = document.getElementById("id").value;
+          var color = document.getElementById("color").value;
+          obniz.display.print("ID: " + id);
+          obniz.display.print("Color: " + color);
+          id = id.toString();
+          color = color.toString();
+          var id1 = "0x" + id[4] + id[5];
+          var color1 = "0x" + color[4] + color[5];
+          id = id.slice(0, -2);
+          color = color.slice(0, -2);
+          id = parseInt(id, 16);
+          id1 = parseInt(id1, 16);
+          color = parseInt(color, 16);
+          color1 = parseInt(color1, 16);
+          major = [id, id1];
+          minor = [color, color1];
+
+          beacon1 = beacon.concat(major, minor, rssi);
+
+          obniz.ble.advertisement.setAdvDataRaw(beacon1);
+          obniz.ble.advertisement.start();
+        });
+      };
+    </script>
+  </body>
+</html>
